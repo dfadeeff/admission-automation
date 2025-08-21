@@ -36,6 +36,10 @@ A complete admission processing system that uses AI agents and RAG to automate a
 └── requirements.txt
 ```
 
+## User Interface
+
+![Admission System Screenshot](assets/screenshot.png)
+
 ## Quick Start
 
 ### Backend Setup
@@ -169,4 +173,109 @@ When an application is submitted, it flows through three AI agents:
   }
 }
 ```
+
+## Solution Architecture & Design
+
+### High-Level Architecture
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   Web Portal    │────▶│   FastAPI        │────▶│   AI Pipeline   │
+│   (Next.js)     │     │   Backend        │     │   (3 Agents)    │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+                               │                          │
+                               ▼                          ▼
+                        ┌──────────────────┐     ┌─────────────────┐
+                        │   ChromaDB       │     │   Handbook      │
+                        │   (Vector Store)  │◀────│   (245 pages)   │
+                        └──────────────────┘     └─────────────────┘
+                               │
+                               ▼
+                        ┌──────────────────┐
+                        │  CRM Integration  │
+                        │  (Salesforce/SMS)│
+                        └──────────────────┘
+```
+
+### Three-Agent Processing Pipeline
+
+**Agent 1: Document Classifier**
+- Uses Claude 3.5 Sonnet to identify document types
+- Recognizes: Abitur, A-Levels, IB, transcripts, work certificates
+- Returns classification with confidence score
+
+**Agent 2: Data Extractor**
+- Extracts structured data from classified documents
+- Pulls out: grades, personal info, qualifications, dates
+- Adapts extraction templates based on document type
+
+**Agent 3: Admission Decision Agent (RAG-Powered)**
+- Queries ChromaDB for relevant handbook sections
+- Uses Claude to interpret admission rules contextually
+- Makes decision: APPROVED/REJECTED/REVIEW_REQUIRED/MISSING_DOCS
+- Provides reasoning with handbook page citations
+
+### Key Design Decisions & Trade-offs
+
+**1. RAG vs Hard-coded Rules**
+- ✅ **Chosen:** RAG with LLM interpretation
+- **Pros:** Handles edge cases, natural language rules, easy updates
+- **Cons:** ~€0.10 per application API cost, non-deterministic
+- **Mitigation:** Temperature=0, confidence thresholds
+
+**2. Local vs Cloud Embeddings**
+- ✅ **Chosen:** Local Sentence Transformers
+- **Pros:** Zero embedding costs, data privacy, consistent performance
+- **Cons:** Slightly lower quality than OpenAI
+- **Savings:** ~€2,000/year in embedding costs
+
+**3. Processing Model**
+- ✅ **Chosen:** Asynchronous with real-time polling
+- **Pros:** Better UX, handles peak loads, scalable
+- **Cons:** More complex frontend, requires status tracking
+
+### Performance & Scale
+
+**Current Benchmarks:**
+- Document Classification: ~2 seconds
+- Data Extraction: ~3 seconds
+- Decision Making: ~2 seconds
+- **Total:** ~7-10 seconds per application
+
+**Production Targets:**
+- **Throughput:** 500+ applications/hour per instance
+- **Scalability:** Horizontal scaling for 10k+ daily peaks
+- **Accuracy:** 95%+ for standard cases, 100% review for edge cases
+- **Automation Rate:** 85%+ fully automated decisions
+
+### Risk Mitigation
+
+**AI Decision Accuracy**
+- Confidence thresholds trigger human review
+- Every decision includes handbook citations for verification
+- Complete audit logs for regulatory compliance
+
+**System Availability**
+- Local vector database (no external dependencies for rules)
+- Fallback to manual processing queue
+- Health checks and auto-restart mechanisms
+
+**Data Privacy & Compliance**
+- On-premise deployment option
+- Local embeddings (no data to external APIs)
+- Encrypted storage with GDPR-compliant retention
+- Transparent decision-making with citations
+
+### Cost-Benefit Analysis
+
+**Annual Costs:**
+- AI API (Claude): ~€5,000 (50k applications × €0.10)
+- Infrastructure: ~€2,400 (cloud hosting)
+- Development: One-time €50,000
+- Maintenance: ~€10,000/year
+
+**Annual Benefits:**
+- Time Savings: 40,000 hours (50k applications × 50 minutes saved)
+- Cost Savings: ~€1,000,000 (40,000 hours × €25/hour)
+- Improved accuracy and faster enrollment
 

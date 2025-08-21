@@ -146,7 +146,7 @@ export default function HomePage() {
       <div className="max-w-4xl mx-auto px-4">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            IU Admissions System
+            Admissions System
           </h1>
           <p className="text-gray-600">
             Upload admission documents and get instant decisions powered by AI
@@ -164,7 +164,7 @@ export default function HomePage() {
                 type="text"
                 value={applicantId}
                 onChange={(e) => setApplicantId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                 placeholder="e.g. test123"
               />
             </div>
@@ -175,7 +175,7 @@ export default function HomePage() {
               <select
                 value={targetProgram}
                 onChange={(e) => setTargetProgram(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
               >
                 <option value="Finanzmanagement">Finanzmanagement</option>
                 <option value="Business Administration">Business Administration</option>
@@ -190,7 +190,7 @@ export default function HomePage() {
               <select
                 value={entity}
                 onChange={(e) => setEntity(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
               >
                 <option value="DE">Germany (DE)</option>
                 <option value="UK">United Kingdom (UK)</option>
