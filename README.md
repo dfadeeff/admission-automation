@@ -33,7 +33,6 @@ A complete admission processing system that uses AI agents and RAG to automate a
 │   ├── ALEVELS/             # UK A-Levels samples
 │   ├── IB_DIPLOMA/          # IB Diploma samples
 │   └── samples/             # Complex multi-document cases
-├── tests/                   # Comprehensive test suite
 └── requirements.txt
 ```
 
@@ -171,16 +170,3 @@ When an application is submitted, it flows through three AI agents:
 }
 ```
 
-## Testing
-
-Run comprehensive tests:
-```bash
-pytest tests/ -v
-```
-
-Or test specific components:
-```bash
-pytest tests/test_rag_system.py -v      # RAG queries
-pytest tests/test_admission_workflow.py -v  # Full workflow
-pytest tests/test_agents.py -v             # Individual agents
-```
