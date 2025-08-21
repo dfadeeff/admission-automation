@@ -5,6 +5,16 @@ A complete admission processing system that uses AI agents and RAG to automate a
 ## System Architecture
 
 ```
+├── frontend/                # Next.js web interface
+│   ├── app/                 # App router pages
+│   │   ├── page.tsx         # Main application page with upload UI
+│   │   ├── layout.tsx       # Root layout
+│   │   └── globals.css      # Global styles
+│   ├── public/              # Static assets
+│   ├── package.json         # Frontend dependencies
+│   ├── tsconfig.json        # TypeScript configuration
+│   ├── tailwind.config.ts   # Tailwind CSS configuration
+│   └── next.config.ts       # Next.js configuration
 ├── backend/
 │   ├── main.py              # FastAPI application
 │   ├── agents/              # AI Agent pipeline
@@ -29,18 +39,38 @@ A complete admission processing system that uses AI agents and RAG to automate a
 
 ## Quick Start
 
-1. **Install dependencies:**
+### Backend Setup
+
+1. **Install Python dependencies:**
 ```bash
 pip install -r requirements.txt
 ```
 
-2. **Start the server** (ChromaDB already initialized):
+2. **Start the backend server** (ChromaDB already initialized):
 ```bash
 cd backend
 python main.py
 ```
 
-3. **Submit an application:**
+### Frontend Setup
+
+3. **Install Node dependencies:**
+```bash
+cd frontend
+npm install
+```
+
+4. **Start the frontend:**
+```bash
+npm run dev
+```
+
+5. **Open the application:**
+Navigate to `http://localhost:3000` in your browser
+
+### API Testing (Optional)
+
+**Submit an application via API:**
 ```bash
 curl -X POST http://localhost:8000/submit-application \
   -F "applicant_id=test123" \
@@ -49,7 +79,7 @@ curl -X POST http://localhost:8000/submit-application \
   -F "files=@../data/ABITUR/Abitur_Zeugnis_SAMPLE.pdf"
 ```
 
-4. **Check the decision:**
+**Check the decision:**
 ```bash
 # Use the returned application ID
 curl http://localhost:8000/application/APP-XXXXXXXX
@@ -108,6 +138,7 @@ When an application is submitted, it flows through three AI agents:
 
 ## Key Features
 
+- ✅ **Web Interface** - User-friendly drag & drop PDF upload interface
 - ✅ **Complete automation** - Processes documents end-to-end
 - ✅ **Multi-document support** - Handles complex applications
 - ✅ **RAG-based decisions** - Uses 245-page handbook intelligently
@@ -116,6 +147,7 @@ When an application is submitted, it flows through three AI agents:
 - ✅ **Scalable architecture** - Handles high volume (50k+ applications)
 - ✅ **Multiple qualifications** - Supports Abitur, A-Levels, IB, work experience
 - ✅ **Regulatory compliance** - Checks complex admission rules automatically
+- ✅ **Real-time processing** - Live status updates and polling
 
 ## Sample Results
 
