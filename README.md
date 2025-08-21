@@ -1,6 +1,6 @@
-# IU Admissions Automation System
+# Admissions Automation System
 
-A complete admission processing system that uses AI agents and RAG to automate IU's admission workflow for up to 50k+ students annually.
+A complete admission processing system that uses AI agents and RAG to automate admission workflow for up to 50k+ students annually.
 
 ## System Architecture
 
