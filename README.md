@@ -90,7 +90,7 @@ curl http://localhost:8000/application/APP-XXXXXXXX
 
 ## How The System Works
 
-### 1. One-Time Setup ()
+### 1. One-Time Setup
 - The 245-page `Leitfaden.pdf` handbook was processed once
 - Split into ~1500 character chunks with overlap
 - Embedded using free local Sentence Transformers
@@ -111,7 +111,7 @@ When an application is submitted, it flows through three AI agents:
 - Pulls out: grades, personal info, qualifications, dates
 - Adapts extraction templates based on document type
 
-**⚖Agent 3: Admission Decision (RAG-Powered)**
+**Agent 3: Admission Decision (RAG-Powered)**
 - Queries ChromaDB for relevant handbook sections
 - Uses Claude to interpret admission rules contextually
 - Makes decision: APPROVED/REJECTED/REVIEW_REQUIRED/MISSING_DOCS
