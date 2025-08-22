@@ -279,3 +279,285 @@ When an application is submitted, it flows through three AI agents:
 - Cost Savings: ~€1,000,000 (40,000 hours × €25/hour)
 - Improved accuracy and faster enrollment
 
+## CRM & SMS Integration Architecture
+
+### Salesforce Integration
+
+The system is designed to seamlessly integrate with Salesforce CRM through the following approach:
+
+**1. Real-time Data Sync**
+```python
+# Pseudo-code for Salesforce integration
+async def sync_to_salesforce(application_data):
+    # Using Salesforce REST API
+    sf_client = Salesforce(
+        username=SALESFORCE_USER,
+        password=SALESFORCE_PASSWORD,
+        security_token=SALESFORCE_TOKEN
+    )
+    
+    # Create/Update Lead or Contact
+    lead_data = {
+        'FirstName': application_data['first_name'],
+        'LastName': application_data['last_name'],
+        'Email': application_data['email'],
+        'Program__c': application_data['target_program'],
+        'Admission_Status__c': application_data['decision']['status'],
+        'Application_ID__c': application_data['application_id'],
+        'Qualification_Type__c': application_data['qualification_type'],
+        'Decision_Confidence__c': application_data['decision']['confidence']
+    }
+    
+    # Update existing or create new
+    if application_data.get('salesforce_id'):
+        sf_client.Lead.update(application_data['salesforce_id'], lead_data)
+    else:
+        result = sf_client.Lead.create(lead_data)
+        return result['id']
+```
+
+**2. Event-Driven Updates**
+- Webhook endpoints for bi-directional sync
+- Real-time status updates pushed to Salesforce
+- Document links stored as Salesforce attachments
+- Custom objects for admission-specific data
+
+**3. Bulk Operations**
+- Salesforce Bulk API for peak periods (10k+ applications/day)
+- Batch processing with error recovery
+- Async job monitoring and retry logic
+
+### EPOS (Student Management System) Integration
+
+**1. Direct Database Integration**
+```python
+# EPOS integration via database connection
+async def sync_to_epos(approved_application):
+    # Connection to EPOS PostgreSQL/Oracle database
+    async with epos_db.transaction():
+        # Create student record
+        student_id = await epos_db.execute("""
+            INSERT INTO students (
+                external_id, first_name, last_name, 
+                program_id, admission_date, qualification_type
+            ) VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING student_id
+        """, application_data)
+        
+        # Create enrollment record
+        await epos_db.execute("""
+            INSERT INTO enrollments (
+                student_id, program_id, start_date, 
+                admission_type, document_verified
+            ) VALUES ($1, $2, $3, $4, $5)
+        """, enrollment_data)
+```
+
+**2. API Gateway Pattern**
+- RESTful API endpoints for EPOS communication
+- Message queue (RabbitMQ/Kafka) for reliability
+- Compensation transactions for failed operations
+
+### SMS/Email Notification System
+
+**1. Multi-Channel Notifications**
+```python
+class NotificationService:
+    def __init__(self):
+        self.sms_client = TwilioClient(TWILIO_SID, TWILIO_TOKEN)
+        self.email_client = SendGridClient(SENDGRID_API_KEY)
+    
+    async def notify_applicant(self, application_data, channel='both'):
+        # SMS notification via Twilio
+        if channel in ['sms', 'both']:
+            message = self._format_sms(application_data)
+            await self.sms_client.messages.create(
+                to=application_data['phone'],
+                from_=IU_SMS_NUMBER,
+                body=message
+            )
+        
+        # Email notification via SendGrid
+        if channel in ['email', 'both']:
+            await self.email_client.send(
+                to=application_data['email'],
+                template_id=DECISION_TEMPLATE_ID,
+                dynamic_data=application_data
+            )
+```
+
+**2. Notification Templates**
+- **Approved**: Congratulations + next steps + enrollment link
+- **Rejected**: Reason + appeal process + alternative programs
+- **Review Required**: Document request + deadline + support contact
+- **Missing Documents**: Specific list + upload link + deadline
+
+**3. Delivery Tracking**
+- SMS delivery confirmations
+- Email open/click tracking
+- Failed delivery retry with exponential backoff
+- Alternative channel fallback (SMS fails → Email)
+
+### Integration Data Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Application Submitted                      │
+└────────────────────────┬────────────────────────────────────┘
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│              AI Pipeline Processing (7-10 sec)                │
+└────────────────────────┬────────────────────────────────────┘
+                         ▼
+        ┌────────────────┴────────────────┐
+        ▼                                  ▼
+┌───────────────────┐            ┌───────────────────┐
+│   Salesforce CRM  │            │  SMS/Email Alert  │
+│   (Lead/Contact)  │            │   (Immediate)     │
+└───────────────────┘            └───────────────────┘
+        │                                  
+        ▼ (if approved)                   
+┌───────────────────┐            
+│    EPOS System    │            
+│ (Student Record)  │            
+└───────────────────┘            
+```
+
+### Security & Compliance for Integrations
+
+**1. Authentication & Authorization**
+- OAuth 2.0 for Salesforce API
+- API key rotation every 90 days
+- IP whitelisting for production servers
+- Rate limiting per integration endpoint
+
+**2. Data Privacy (GDPR Compliance)**
+- Encrypted data transmission (TLS 1.3)
+- PII masking in logs
+- Data retention policies (7 years for academic records)
+- Right to erasure implementation
+
+**3. Audit Trail**
+- Every integration call logged with timestamp
+- Success/failure tracking with error details
+- Data lineage from application to final system
+- Compliance reporting dashboard
+
+## Next Steps for Production Deployment
+
+### Phase 1: Core Infrastructure (Week 1-2)
+
+**1. Database Implementation**
+- [ ] PostgreSQL setup with proper schemas
+- [ ] Application state persistence
+- [ ] Document storage (S3/Azure Blob)
+- [ ] Audit log tables with retention policies
+- [ ] Database backup and disaster recovery
+
+**2. Security Hardening**
+- [ ] JWT-based authentication system
+- [ ] Role-based access control (RBAC)
+- [ ] API rate limiting and DDoS protection
+- [ ] Secrets management (HashiCorp Vault/AWS Secrets Manager)
+- [ ] GDPR compliance tools (consent tracking, data export)
+
+**3. Monitoring & Observability**
+- [ ] Application performance monitoring (Datadog/New Relic)
+- [ ] Log aggregation (ELK stack)
+- [ ] Custom metrics dashboards
+- [ ] Alert rules for SLA compliance
+- [ ] Health check endpoints
+
+### Phase 2: Integration Implementation (Week 2-3)
+
+**1. Salesforce Integration**
+- [ ] Salesforce sandbox setup and testing
+- [ ] Custom objects and fields creation
+- [ ] Bi-directional sync implementation
+- [ ] Bulk API for high-volume periods
+- [ ] Error handling and retry logic
+
+**2. EPOS Integration**
+- [ ] Database connection setup
+- [ ] Data mapping and transformation
+- [ ] Transaction management
+- [ ] Rollback procedures
+- [ ] Integration testing with test data
+
+**3. Notification System**
+- [ ] Twilio SMS integration
+- [ ] SendGrid email templates
+- [ ] Multi-language support
+- [ ] Delivery tracking and reporting
+- [ ] Fallback mechanisms
+
+### Phase 3: Performance & Scale (Week 3-4)
+
+**1. Load Testing & Optimization**
+- [ ] Stress testing with 10k concurrent applications
+- [ ] Database query optimization
+- [ ] Caching layer (Redis) implementation
+- [ ] CDN for static assets
+- [ ] Auto-scaling configuration
+
+**2. High Availability Setup**
+- [ ] Multi-region deployment
+- [ ] Load balancer configuration
+- [ ] Database replication
+- [ ] Zero-downtime deployment pipeline
+- [ ] Disaster recovery procedures
+
+**3. Advanced Features**
+- [ ] A/B testing framework for decision algorithms
+- [ ] Machine learning model for improving accuracy
+- [ ] Real-time analytics dashboard
+- [ ] Automated reporting for compliance
+- [ ] Self-service portal for applicants
+
+### Phase 4: Production Rollout (Week 4+)
+
+**1. Pilot Program**
+- [ ] Select 100 applications for pilot
+- [ ] Side-by-side processing with manual verification
+- [ ] Accuracy metrics collection
+- [ ] User feedback gathering
+- [ ] Performance benchmarking
+
+**2. Gradual Rollout**
+- [ ] 10% traffic → 25% → 50% → 100%
+- [ ] Monitoring at each stage
+- [ ] Rollback procedures ready
+- [ ] Support team training
+- [ ] Documentation completion
+
+**3. Full Production**
+- [ ] 24/7 monitoring setup
+- [ ] On-call rotation established
+- [ ] SLA monitoring (99.9% uptime)
+- [ ] Regular security audits
+- [ ] Continuous improvement pipeline
+
+### Estimated Timeline & Resources
+
+**Total Time to Production: 4-5 weeks**
+
+**Team Requirements:**
+- 2 Backend Engineers (Python/FastAPI)
+- 1 Frontend Engineer (React/Next.js)
+- 1 DevOps Engineer (AWS/Azure)
+- 1 Integration Specialist (Salesforce/EPOS)
+- 1 QA Engineer
+- 1 Project Manager
+
+**Infrastructure Costs (Annual):**
+- Cloud hosting (AWS/Azure): €24,000
+- Database (PostgreSQL RDS): €6,000
+- Monitoring tools: €4,800
+- SMS/Email services: €3,600
+- Total: ~€38,400/year
+
+**ROI Timeline:**
+- Break-even: 2 months after deployment
+- Full ROI: €960,000+ savings in Year 1
+- Efficiency gain: 85% reduction in processing time
+
