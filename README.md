@@ -187,12 +187,12 @@ When an application is submitted, it flows through three AI agents:
                                ▼                          ▼
                         ┌──────────────────┐     ┌─────────────────┐
                         │   ChromaDB       │     │   Handbook      │
-                        │   (Vector Store)  │◀────│   (245 pages)   │
+                        │   (Vector Store) │◀────│   (245 pages)   │
                         └──────────────────┘     └─────────────────┘
                                │
                                ▼
                         ┌──────────────────┐
-                        │  CRM Integration  │
+                        │  CRM Integration │
                         │  (Salesforce/SMS)│
                         └──────────────────┘
 ```
