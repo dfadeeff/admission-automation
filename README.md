@@ -90,7 +90,7 @@ curl http://localhost:8000/application/APP-XXXXXXXX
 
 ## How The System Works
 
-### 1. One-Time Setup (Already Done ✅)
+### 1. One-Time Setup ()
 - The 245-page `Leitfaden.pdf` handbook was processed once
 - Split into ~1500 character chunks with overlap
 - Embedded using free local Sentence Transformers
@@ -101,17 +101,17 @@ curl http://localhost:8000/application/APP-XXXXXXXX
 
 When an application is submitted, it flows through three AI agents:
 
-**🤖 Agent 1: Document Classifier**
+**Agent 1: Document Classifier**
 - Uses Claude 3.5 Sonnet to identify document types
 - Recognizes: Abitur, A-Levels, IB, transcripts, CV, work certificates, etc.
 - Returns classification with confidence score
 
-**📊 Agent 2: Data Extractor**
+**Agent 2: Data Extractor**
 - Extracts structured data from classified documents
 - Pulls out: grades, personal info, qualifications, dates
 - Adapts extraction templates based on document type
 
-**⚖️ Agent 3: Admission Decision (RAG-Powered)**
+**⚖Agent 3: Admission Decision (RAG-Powered)**
 - Queries ChromaDB for relevant handbook sections
 - Uses Claude to interpret admission rules contextually
 - Makes decision: APPROVED/REJECTED/REVIEW_REQUIRED/MISSING_DOCS
